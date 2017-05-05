@@ -1,5 +1,11 @@
 _ = require 'lodash'
 
+derby = require 'derby'
+
+if not derby.util.isServer
+    global.jQuery = $ = require 'jquery'
+    require 'bootstrap-datepicker'
+
 
 module.exports = class
     view: __dirname
@@ -9,23 +15,19 @@ module.exports = class
     ]
 
     create: ->
-        global.jQuery = $ = require 'jquery'
-        require 'bootstrap-datepicker'
-        require 'bootstrap-datepicker/js/locales/bootstrap-datepicker.ru'
         require 'jquery.maskedinput/src/jquery.maskedinput'
 
         config = @model.get('config') or {}
+        @elem.placeholder = $.fn.datepicker.dates['en'].format.replace /\w/g, '_'
         @datepicker = $(@elem).datepicker _.defaults {}, config,
                 todayHighlight: true
                 autoclose: true
-                format: 'dd.mm.yyyy'
-                language: 'ru'
                 clearBtn: not @getAttribute 'required'
                 orientation: 'auto top'
-            .mask '99.99.9999'
+            .mask $.fn.datepicker.dates['en'].format.replace /\w/g, '9'
 
         @dom.on 'keyup', @elem, =>
-            if @elem.value == '__.__.____'
+            if @elem.value == @elem.placeholder
                 @datepicker.datepicker 'setDate', null
 
         if @model.get 'value'
