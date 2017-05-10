@@ -28,35 +28,32 @@ module.exports = class
 
         @dom.on 'keyup', @elem, =>
             if @elem.value == @elem.placeholder
-                @datepicker.datepicker 'setDate', null
+                @datepicker.datepicker 'setUTCDate', null
 
         if @model.get 'value'
-            date = new Date @model.get 'value'
-            date.setHours 0, 0, 0, 0
-            @datepicker.datepicker 'setDate', date
+            @datepicker.datepicker 'setUTCDate', @model.get 'value'
 #        else
 #            @model.setDiff 'value', null
 
         @datepicker.on 'changeDate', (e) =>
-            e.date?.setHours 14  # TODO: зависимость от часового пояса
-            if e.date or @model.get 'value'
-                @model.setDiff 'value', e.date?.getTime() or null
+            date = @datepicker.datepicker 'getUTCDate'
+            if @getAttribute 'endOfDay'
+                date?.setUTCHours 23, 59, 59, 999
+            return if date?.valueOf() == value?.valueOf()
+            @model.set 'value', date
             # value может быть null или undefined
 
 #        @datepicker.on 'clearDate', (e) =>
 #            console.log 'picker clear'
 #            @model.setDiff 'value', null
 
-        @model.on 'change', 'value', (value) =>
-            date = @datepicker.datepicker('getDate')
-            date?.setHours 14
-            if value != (date?.getTime() or null)
-                if value  # Сразу проверяем 0 и пустую строку
-                    date = new Date value
-                    date?.setHours 0, 0, 0, 0
-                else
-                    date = null
-                # Обход глюка. Иногда change event вызывается, а само значение устанавливается позже.
-                # Из-за этого changeDate и change value начинают бесконечно менять последние два значения местами.
-                setTimeout => @datepicker.datepicker 'setDate', date
-                    , 0
+        listener = @model.on 'change', 'value', (value) =>
+            date = @datepicker.datepicker 'getUTCDate'
+            if @getAttribute 'endOfDay'
+                date?.setUTCHours 23, 59, 59, 999
+            return if value?.valueOf() == date?.valueOf()
+
+            # Обход глюка. Иногда change event вызывается, а само значение устанавливается позже.
+            # Из-за этого changeDate и change value начинают бесконечно менять последние два значения местами.
+            setTimeout => @datepicker.datepicker 'setUTCDate', value or null
+                , 0
