@@ -1,6 +1,6 @@
 {
   "name": "d-bs-datepicker",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "DerbyJS bootstrap-datepicker component with masked input support",
   "main": "index.js",
   "scripts": {
